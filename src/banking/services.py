@@ -1,18 +1,11 @@
-from fastapi import Depends
 from sqlalchemy.orm import Session
-
-from random import randrange
-
-from sqlalchemy import Uuid
-from src.database import get_db
+from sqlalchemy.exc import IntegrityError
+from secrets import choice
 from .models import BankAccount
-from .schemas import AccountTypes, BaseBankAccount
+from .schemas import BaseBankAccount
 
-def create_account_number():
-    # TODO #8 find a better way of makeing an account number without 
-    # risking repeating the same number
-    # add a quare to the db makeing sure that the number isnt repeating
-    number = randrange(start=10**10, stop=10**11-1)
+def create_account_number() -> int:
+    number = choice(range(10**9, 10**10))
     return number
 
 
@@ -21,9 +14,13 @@ def auto_create_bank_account(player_id, type: str, db: Session) -> bool | int:
     player id already has an account'''
     account_number = create_account_number()
     new_account: BaseBankAccount = BankAccount(player = player_id, 
-                              account_number = account_number,
-                              type=type)
-    db.add(new_account)
+                            account_number = account_number,
+                            type=type)
+    try:
+        db.add(new_account)
+    except IntegrityError:
+        # try to get a diffrent acc number
+        ... 
     db.commit()
     db.refresh(new_account)
     return account_number
