@@ -2,11 +2,9 @@ from sqlalchemy import select, text
 from sqlalchemy_utils import create_view
 
 from src.auth.models import User
-from src.businesses.models import Business
-from src.banking.models import BankAccount
 from src.database import Base, engine
 
-from .models import Player, players_businesses
+from .models import Player
 
 # TODO make this more modeler and safe, with handling view already exists error
 # Drop the view if it already exists (for SQLite compatibility)
@@ -24,11 +22,7 @@ stmt = select(
 view = create_view("user_view", stmt, Base.metadata)
 
 
-try:
+class PlayerView(Base):
+    """A view the binds the player_id with the user name"""
 
-    class PlayerView(Base):
-        """A view the binds the player_id with the user name"""
-
-        __table__ = view
-except Exception as e:
-    pass
+    __table__ = view
